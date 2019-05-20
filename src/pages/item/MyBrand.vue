@@ -7,7 +7,7 @@
         <!--空间隔离组件-->
         <v-spacer />
         <!--搜索框，与search属性关联-->
-        <v-text-field label="输入关键字搜索" v-model="search" append-icon="search" hide-details/>
+        <v-text-field label="输入关键字搜索" v-model="keyword" append-icon="search" hide-details/>
       </v-card-title>
       <!-- 分割线 -->
       <v-divider/>
@@ -27,8 +27,12 @@
           <td class="text-xs-center"><img :src="props.item.image" width="130" height="40"></td>
           <td class="text-xs-center">{{ props.item.letter }}</td>
           <td class="justify-center layout">
-            <v-btn color="info">编辑</v-btn>
-            <v-btn color="warning">删除</v-btn>
+            <v-btn flat icon color="primary">
+              <v-icon>edit</v-icon>
+            </v-btn>
+            <v-btn flat icon color="error">
+              <v-icon>delete</v-icon>
+            </v-btn>
           </td>
         </template>
       </v-data-table>
@@ -41,63 +45,42 @@
         name: "MyBrand",
         data () {
           return {
-            totalBrands: 0, // 总条数
-            brands: [], // 当前页品牌数据
-            loading: true, // 是否在加载中
-            pagination: {}, // 分页信息
             headers: [ // 头信息
               {text: 'id', align: 'center', value: 'id'},
               {text: '名称', align: 'center', value: 'name', sortable: false},
               {text: 'LOGO', align: 'center', value: 'image', sortable: false},
               {text: '首字母', align: 'center', value: 'letter'},
               {text: '操作', align: 'center', value: 'id', sortable: false}
-            ]
+            ],
+            totalBrands: 0, // 总条数
+            brands: [], // 当前页品牌数据
+            loading: true, // 是否在加载中
+            pagination: {}, // 分页信息
+            keyword: "", // 搜索条件
           }
         },
         mounted(){ // 渲染后执行
           // 查询数据
-          this.getDataFromServer();
+          this.loadBrandList();
+        },
+        watch: {
+          // 搜索条件改变时触发查询
+          keyword() {
+            this.loadBrandList();
+          }
         },
         methods:{
-          getDataFromServer(){ // 从服务的加载数据的方法。
-            // 伪造假数据
-            const brands = [
-              {
-                "id": 2032,
-                "name": "OPPO",
-                "image": "http://gizchina.es/wp-content/uploads/2014/10/oppo-logo-1-1024x473.jpg",
-                "letter": "O",
-                "categories": null
-              },
-              {
-                "id": 2033,
-                "name": "飞利浦（PHILIPS）",
-                "image": "http://img5.pcpop.com/ProductImages/0x0/0/210/000210093.jpg",
-                "letter": "F",
-                "categories": null
-              },
-              {
-                "id": 2034,
-                "name": "华为（HUAWEI）",
-                "image": "http://ku.90sjimg.com/element_origin_min_pic/17/12/21/213ee5955f5ce4adedd2a1ce14a84ee6.jpg",
-                "letter": "H",
-                "categories": null
-              },
-              {
-                "id": 2036,
-                "name": "酷派（Coolpad）",
-                "image": "http://bpic.588ku.com/element_origin_min_pic/17/12/29/5668e2fb9c14c8c27713642c66f37045.jpg",
-                "letter": "K",
-                "categories": null
-              },
-              {
-                "id": 2037,
-                "name": "魅族（MEIZU）",
-                "image": "http://image0.lietou-static.com/img/54ae5cfc0cf2860fbba8700c02c.png",
-                "letter": "M",
-                "categories": null
-              }
-            ];
+          // 从服务的加载数据的方法。
+          loadBrandList(){
+            // 发起请求
+            this.$http.get("/item/brand/list", {
+                params: {
+                  keyword: this.keyword, // 搜索条件
+                }
+              }).then(resp => {
+                this.brands = resp.items;
+              })
+
             // 模拟延迟一段时间，随后进行赋值
             setTimeout(() => {
               // 然后赋值给brands
